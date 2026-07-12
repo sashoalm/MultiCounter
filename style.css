@@ -1,0 +1,422 @@
+html, body, div, span, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, address, em, img, dl, dt, dd, ol, ul, li, form, label,
+table, caption, tbody, tfoot, thead, tr, th, td, article, aside, figcaption, figure, footer, header, menu, nav, section, time, video {
+    margin: 0px;
+    padding: 0px;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
+}
+
+button {
+    border: none;
+    background-color: transparent;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+html {
+    touch-action: manipulation;
+    font-size: 12px;
+}
+@media print, (min-width: 600px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    color: #000;
+    font-family: "Noto Sans Japanese", sans-serif;
+}
+
+.header {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 100;
+    background-color: #000;
+    text-align: center;
+    color: #fff;
+    transition: transform 0.3s ease;
+}
+
+.header.header_hidden {
+    transform: translateY(-100%);
+}
+
+.header h1 {
+    padding: 1em 0px;
+    font-size: 1.5rem;
+}
+
+.button_option,
+.button_help {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2rem;
+    height: 2rem;
+}
+.button_option {
+    left: 1rem;
+}
+.button_help {
+    right: 1rem;
+}
+.button_option::before,
+.button_help::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    color: #fff;
+    font-size: 2rem;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+.button_option::before {
+    content: "\f013";
+}
+.button_help::before {
+    content: "\f059";
+}
+
+.list li {
+    margin: 1em 0px 0px 1.5em;
+}
+
+.about {
+    width: 98%;
+    max-width: 900px;
+    margin: 0px auto;
+    padding: 40px 10px 60px;
+}
+
+.about_section {
+    margin-top: 3em;
+}
+
+.about_section:first-child {
+    margin-top: 0;
+}
+
+.about_section h2 {
+    padding: 0px 0.5em 0.5em;
+    border-bottom: solid 2px #000;
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+.about_section p {
+    margin-top: 1em;
+    line-height: 1.8;
+}
+
+.about_list {
+    margin-top: 1em;
+}
+
+.about_list li {
+    margin: 0.75em 0px 0px 1.5em;
+    line-height: 1.6;
+}
+
+.faq {
+    margin-top: 1em;
+}
+
+.faq dt {
+    margin-top: 1.5em;
+    font-weight: bold;
+}
+
+.faq dt::before {
+    content: "Q. ";
+}
+
+.faq dd {
+    margin-top: 0.4em;
+    margin-left: 1.5em;
+    line-height: 1.8;
+}
+
+.faq dd::before {
+    content: "A. ";
+    font-weight: bold;
+}
+
+.footer {
+    padding: 1em 0px;
+    background-color: #000;
+    text-align: center;
+}
+
+.footer a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.footer a + a:before {
+    margin: 0px 1em;
+    content: "/";
+}
+
+main {
+    width: 98%;
+    padding: 20px 0px;
+    margin: 0px auto;
+}
+@media print, (min-width: 900px) {
+    main {
+        width: 900px;
+    }
+}
+
+input {
+    padding: 0px;
+    box-sizing: border-box;
+}
+input:focus {
+    outline: none;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+}
+
+button {
+    outline: none;
+    border: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.items {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -20px 0px 0px;
+}
+
+.item {
+    position: relative;
+    padding: 10px;
+    margin: 20px 10px 0px;
+    width: calc(100% - 20px);
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+@media print, (min-width: 600px) {
+    .item {
+        width: calc(50% - 20px);
+    }
+}
+
+.item_timestamp {
+    position: absolute;
+    top: 0px;
+    right: 1em;
+    color: #ddd;
+    font-size: 12px;
+}
+
+.item_title {
+    position: relative;
+    text-align: center;
+}
+
+.item_title input {
+    padding: 10px 0px;
+    width: calc(100% - 9rem); /* Adjusted to make space for 3 buttons total */
+    border: none;
+    background-color: transparent;
+    font-size: 1.25rem;
+    text-align: center;
+}
+
+.btn_reset {
+    position: absolute;
+    top: 50%;
+    left: 0px;
+    transform: translateY(-50%);
+    padding: 1.5rem 0px 0px;
+    width: 3rem;
+    height: 0px;
+    background: none;
+    color: currentColor;
+}
+.btn_reset::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    color: currentColor;
+    font-size: 1.5rem;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f0e2";
+}
+
+/* Updated Counter Button Styles */
+.btn_minus,
+.btn_plus {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 3rem 0px 0px;
+    width: 3rem;
+    height: 0px;
+    background: none;
+    color: currentColor;
+}
+
+.btn_minus::before,
+.btn_minus::after,
+.btn_plus::before,
+.btn_plus::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    background-color: currentColor;
+    content: "";
+}
+
+.btn_minus::before,
+.btn_plus::before {
+    width: 100%;
+    height: 15%;
+}
+
+.btn_minus {
+    left: 3rem; /* Shifted over so it doesn't overlap btn_reset */
+}
+
+.btn_plus {
+    right: 0px;
+}
+
+.btn_plus::after {
+    width: 15%;
+    height: 100%;
+}
+
+.popup_main_content button {
+    display: block;
+    width: 90%;
+    max-width: 500px;
+    padding: 1em 2em;
+    margin: 0px auto;
+    background-color: #000;
+    color: #fff;
+    font-size: 18px;
+    text-align: center;
+}
+
+.popup_main_content button + button {
+    margin-top: 2em;
+}
+
+.popup_main_content .btn_sort_title_asc {
+    margin-top: 4em;
+}
+
+.popup {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-size: 16px;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.5s;
+}
+
+.popup.js_open {
+    visibility: visible;
+    opacity: 1;
+}
+
+.popup_main {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    width: 90vw;
+    max-width: 800px;
+    height: 75vh;
+    border: 2px solid #000;
+    background-color: #fff;
+}
+
+.popup_main_button {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 3em;
+    height: 3em;
+    background: none;
+}
+.popup_main_button::before {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    color: #000;
+    font-size: 2em;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f00d";
+}
+
+.popup_main_content {
+    position: absolute;
+    top: 2em;
+    left: 2em;
+    right: 2em;
+    bottom: 2em;
+    overflow-y: auto;
+}
+
+.popup_main_content h2 {
+    padding: 0px 0.5em 0.5em;
+    border-bottom: solid 2px #000;
+    text-align: center;
+}
+
+.popup_main_content .list {
+    display: table;
+    margin: 1em auto 0px;
+}
+
+/* 1. Target the elements and reduce their dimensions relative to the container */
+.btn_minus::before,
+.btn_plus::before {
+    width: 60%;         /* Reduced from 100% to 60% */
+    height: 10%;        /* Slightly thinner line, adjust as you like */
+}
+
+.btn_plus::after {
+    width: 10%;         /* Match the thickness of the horizontal line */
+    height: 60%;        /* Reduced from 100% to 60% */
+}
+
+/* 2. IMPORTANT: Fix the centering since they are no longer 100% wide/tall */
+.btn_minus::before,
+.btn_minus::after,
+.btn_plus::before,
+.btn_plus::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Using shorthand translate ensures perfect center */
+    background-color: currentColor;
+    content: "";
+}
