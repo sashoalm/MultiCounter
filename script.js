@@ -27,6 +27,29 @@ for (let i = 0; i < itemCount; i++) {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Initialize and build the DOM from LocalStorage
+    let localData = [];
+    try {
+        localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
+    } catch (e) {
+        console.error("Failed to parse local storage data", e);
+    }
+
+    if (getMaxTimestamp(localData) > getMaxTimestampFromDOM()) {
+
+        const items = itemsContainer.querySelectorAll('.item');
+        for (let i = 0; i < items.length; i++) {
+            const item = items[i];
+            const saved = localData[i];
+            if (saved) {
+                item.querySelector('.item_title').value = saved.title || '';
+                item.querySelector('.item_timestamp').textContent = saved.timestamp || '';
+            }
+        }
+    }
+});
+
 // 2. Parent Event Listeners (Event Delegation)
 itemsContainer.addEventListener('change', function(event) {
     if (event.target.matches('.item_title input')) {
@@ -47,6 +70,47 @@ itemsContainer.addEventListener('click', function(event) {
         countUp(itemEl);
     }
 });
+
+function getMaxTimestamp(localData) {
+    let maxTimestamp = null;
+    for (let i = 0; i < localData.length; i++) {
+        const element = localData[i];
+
+        if (element.timestamp) {
+            // Convert to a Date object or number to ensure accurate comparison
+            const currentTimestamp = new Date(element.timestamp).getTime();
+
+            if (maxTimestamp === null || currentTimestamp > maxTimestamp) {
+                maxTimestamp = currentTimestamp;
+            }
+        }
+    }
+    return maxTimestamp;
+}
+
+function getMaxTimestampFromDOM() {
+    // 1. Select all timestamp elements in the items container
+    const timestampElements = document.querySelectorAll('.items .item_timestamp');
+    
+    let maxTimeValue = 0;
+    let maxTimestampStr = null;
+
+    timestampElements.forEach(el => {
+        const text = el.textContent.trim();
+        if (text) {
+            // 2. Parse the text into a timestamp (milliseconds since epoch)
+            const timeValue = Date.parse(text);
+            
+            // 3. Keep track of the highest valid timestamp found
+            if (!isNaN(timeValue) && timeValue > maxTimeValue) {
+                maxTimeValue = timeValue;
+                maxTimestampStr = text;
+            }
+        }
+    });
+
+    return maxTimeValue;
+}
 
 // 3. Action Handlers (Operating directly on the DOM Element)
 function resetCount(itemEl) {
