@@ -27,38 +27,6 @@ for (let i = 0; i < itemCount; i++) {
     }
 }
 
-let lastLoadedTimestamp = null;
-setInterval(() => {
-    // 1. Initialize and build the DOM from LocalStorage
-    let localData = [];
-    try {
-        localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
-    } catch (e) {
-        console.error("Failed to parse local storage data", e);
-    }
-
-    if (!localData.lastModifiedTimestamp) {
-        localData = { 'items': localData };
-    }
-
-    if (!lastLoadedTimestamp || localData.lastModifiedTimestamp && localData.lastModifiedTimestamp > lastLoadedTimestamp) {
-        lastLoadedTimestamp = Date.now();
-
-        const items = document.querySelectorAll('.item');
-        for (let i = 0; i < itemCount; i++) {
-            // Setup basic placeholders
-            const input = items[i].querySelector('.item_title');
-
-            // Populate saved data if it exists
-            const saved = localData.items[i];
-            if (saved) {
-                input.value = saved.title || '';
-                items[i].querySelector('.item_timestamp').textContent = saved.timestamp || '';
-            }
-        }
-    }
-}, 1000);
-
 // 2. Parent Event Listeners (Event Delegation)
 itemsContainer.addEventListener('change', function(event) {
     if (event.target.matches('.item_title input')) {
@@ -145,12 +113,11 @@ function getTimestamp() {
 // 4. Read directly from the DOM and save to LocalStorage
 function syncData() {
     const allItems = itemsContainer.querySelectorAll('.item');
-    const items = Array.from(allItems).map(itemEl => {
+    const dataToSave = Array.from(allItems).map(itemEl => {
         const title = itemEl.querySelector('.item_title input').value;
         const timestamp = itemEl.querySelector('.item_timestamp').textContent;
         return { title, timestamp }; 
     });
-    const dataToSave = { 'items': items, lastModifiedTimestamp: Date.now() };
 
     localStorage.setItem('item_data_en', JSON.stringify(dataToSave));
 }
