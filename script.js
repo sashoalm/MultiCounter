@@ -1,9 +1,15 @@
 const itemCount = 50;
-const itemsContainer = document.querySelector('.items');
-const baseItem = itemsContainer.querySelector('.item');
 let filterTimeout = null; // Declared globally to fix reference errors in filtering
 
+function struct(title, count, timestamp, item) {
+    this.title = title;
+    this.count = count;
+    this.timestamp = timestamp;
+    this.item = item;
+}
+
 // 1. Initialize and build the DOM from LocalStorage
+let data = [];
 let localData = [];
 try {
     localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
@@ -11,49 +17,58 @@ try {
     console.error("Failed to parse local storage data", e);
 }
 
+const itemsContainer = document.querySelector('.items');
+const baseItem = itemsContainer.querySelector('.item');
+
 for (let i = 0; i < itemCount; i++) {
+    const saved = localData[i] || {};
+    data[i] = new struct(saved.title || '', saved.count || 0, saved.timestamp || '', null);
+
     let temp_item = (i === 0) ? baseItem : baseItem.cloneNode(true);
     if (i > 0) itemsContainer.append(temp_item);
 
+    // Track the index on the element itself
+    temp_item.dataset.index = i;
+
     // Setup basic placeholders
     const input = temp_item.querySelector('.item_title input');
-    input.setAttribute('placeholder', 'Counter ' + (i + 1));
+    if (input) input.setAttribute('placeholder', 'Counter ' + (i + 1));
 
-    // Populate saved data if it exists
-    const saved = localData[i];
-    if (saved) {
-        input.value = saved.title || '';
-        temp_item.querySelector('.item_timestamp').textContent = saved.timestamp || '';
-    }
+    data[i].item = temp_item;
 }
 
+syncData();
+
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Initialize and build the DOM from LocalStorage
-    let localData = [];
+    // Synchronize data if localStorage has newer timestamps than rendered DOM
+    let freshLocalData = [];
     try {
-        localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
+        freshLocalData = JSON.parse(localStorage.getItem('item_data_en')) || [];
     } catch (e) {
         console.error("Failed to parse local storage data", e);
     }
 
-    if (getMaxTimestamp(localData) > getMaxTimestampFromDOM()) {
-
-        const items = itemsContainer.querySelectorAll('.item');
-        for (let i = 0; i < items.length; i++) {
-            const item = items[i];
-            const saved = localData[i];
+    if (getMaxTimestamp(freshLocalData) > getMaxTimestampFromDOM()) {
+        for (let i = 0; i < data.length; i++) {
+            const saved = freshLocalData[i];
             if (saved) {
-                item.querySelector('.item_title').value = saved.title || '';
-                item.querySelector('.item_timestamp').textContent = saved.timestamp || '';
+                data[i].title = saved.title || '';
+                data[i].count = saved.count || 0;
+                data[i].timestamp = saved.timestamp || '';
             }
         }
+        syncData();
     }
 });
 
 // 2. Parent Event Listeners (Event Delegation)
 itemsContainer.addEventListener('change', function(event) {
     if (event.target.matches('.item_title input')) {
-        syncData();
+        const itemEl = event.target.closest('.item');
+        if (itemEl) {
+            const index = parseInt(itemEl.dataset.index, 10);
+            changeTitle(index, event.target.value);
+        }
     }
 });
 
@@ -62,12 +77,14 @@ itemsContainer.addEventListener('click', function(event) {
     const itemEl = target.closest('.item');
     if (!itemEl) return;
 
+    const index = parseInt(itemEl.dataset.index, 10);
+
     if (target.matches('.btn_reset')) {
-        resetCount(itemEl);
+        resetCount(index);
     } else if (target.matches('.btn_minus')) {
-        countDown(itemEl);
+        countDown(index);
     } else if (target.matches('.btn_plus')) {
-        countUp(itemEl);
+        countUp(index);
     }
 });
 
@@ -76,7 +93,7 @@ function getMaxTimestamp(localData) {
     for (let i = 0; i < localData.length; i++) {
         const element = localData[i];
 
-        if (element.timestamp) {
+        if (element && element.timestamp) {
             // Convert to a Date object or number to ensure accurate comparison
             const currentTimestamp = new Date(element.timestamp).getTime();
 
@@ -89,22 +106,16 @@ function getMaxTimestamp(localData) {
 }
 
 function getMaxTimestampFromDOM() {
-    // 1. Select all timestamp elements in the items container
     const timestampElements = document.querySelectorAll('.items .item_timestamp');
     
     let maxTimeValue = 0;
-    let maxTimestampStr = null;
 
     timestampElements.forEach(el => {
         const text = el.textContent.trim();
         if (text) {
-            // 2. Parse the text into a timestamp (milliseconds since epoch)
             const timeValue = Date.parse(text);
-            
-            // 3. Keep track of the highest valid timestamp found
             if (!isNaN(timeValue) && timeValue > maxTimeValue) {
                 maxTimeValue = timeValue;
-                maxTimestampStr = text;
             }
         }
     });
@@ -112,57 +123,69 @@ function getMaxTimestampFromDOM() {
     return maxTimeValue;
 }
 
-// 3. Action Handlers (Operating directly on the DOM Element)
-function resetCount(itemEl) {
-    const input = itemEl.querySelector('.item_title input');
-    
-    // Captures "(baseTitle) - (count)" OR just a standalone "(count)"
-    const match = input.value.match(/^(.*?)(?:\s-\s|\s*)\d+$/);
-    
-    input.value = match ? match[1] : '';
-    itemEl.querySelector('.item_timestamp').textContent = '';
+// 3. Action Handlers (Updating state object)
+function changeTitle(index, value) {
+    data[index].title = value;
     syncData();
 }
 
-function countDown(itemEl) {
-    const input = itemEl.querySelector('.item_title input');
+function resetCount(index) {
+    let currentTitle = data[index].title || '';
+    
+    // Captures "(baseTitle) - (count)" OR just a standalone "(count)"
+    const match = currentTitle.match(/^(.*?)(?:\s-\s|\s*)\d+$/);
+
+    data[index].title = match ? match[1] : '';
+    data[index].count = 0;
+    data[index].timestamp = '';
+    syncData();
+}
+
+function countDown(index) {
+    let currentTitle = data[index].title || '';
     
     // Group 1: Optional base title. Group 2: The count digits.
-    const match = input.value.match(/^(?:(.*)\s-\s)?(\d+)$/);
-    
+    const match = currentTitle.match(/^(?:(.*)\s-\s)?(\d+)$/);
+
     if (match) {
         const baseTitle = match[1]; // undefined if there was no " - "
         const currentCount = parseInt(match[2], 10);
         const newCount = currentCount - 1;
-        
+
         if (newCount > 0) {
-            input.value = baseTitle ? `${baseTitle} - ${newCount}` : `${newCount}`;
-            itemEl.querySelector('.item_timestamp').textContent = getTimestamp();
+            data[index].title = baseTitle ? `${baseTitle} - ${newCount}` : `${newCount}`;
+            data[index].count = newCount;
+            data[index].timestamp = getTimestamp();
         } else {
-            input.value = baseTitle || '';
-            itemEl.querySelector('.item_timestamp').textContent = '';
+            data[index].title = baseTitle || '';
+            data[index].count = 0;
+            data[index].timestamp = '';
         }
-        
+
         syncData();
     }
 }
 
-function countUp(itemEl) {
-    const input = itemEl.querySelector('.item_title input');
+function countUp(index) {
+    let currentTitle = data[index].title || '';
     
     // Group 1: Optional base title. Group 2: The count digits.
-    const match = input.value.match(/^(?:(.*)\s-\s)?(\d+)$/);
-    
+    const match = currentTitle.match(/^(?:(.*)\s-\s)?(\d+)$/);
+
     if (match) {
         const baseTitle = match[1];
         const currentCount = parseInt(match[2], 10);
-        
-        input.value = baseTitle ? `${baseTitle} - ${currentCount + 1}` : `${currentCount + 1}`;
+        const newCount = currentCount + 1;
+
+        data[index].title = baseTitle ? `${baseTitle} - ${newCount}` : `${newCount}`;
+        data[index].count = newCount;
     } else {
         // If the field is totally empty, make it "1" (No dash prefix!)
-        input.value = input.value ? `${input.value} - 1` : '1';
+        data[index].title = currentTitle ? `${currentTitle} - 1` : '1';
+        data[index].count = 1;
     }
-    itemEl.querySelector('.item_timestamp').textContent = getTimestamp();
+
+    data[index].timestamp = getTimestamp();
     syncData();
     debounce(sortMostRecent, 10000);
 }
@@ -174,75 +197,80 @@ function getTimestamp() {
            `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-// 4. Read directly from the DOM and save to LocalStorage
+// 4. Sync State to DOM and LocalStorage
 function syncData() {
-    const allItems = itemsContainer.querySelectorAll('.item');
-    const dataToSave = Array.from(allItems).map(itemEl => {
-        const title = itemEl.querySelector('.item_title input').value;
-        const timestamp = itemEl.querySelector('.item_timestamp').textContent;
-        return { title, timestamp }; 
-    });
+    for (let i = 0; i < data.length; i++) {
+        if (!data[i].item) continue;
+        const input = data[i].item.querySelector('.item_title input');
+        if (input) input.value = data[i].title;
+        data[i].item.querySelector('.item_timestamp').textContent = data[i].timestamp;
+    }
+
+    const dataToSave = data.map(item => ({
+        title: item.title,
+        count: item.count,
+        timestamp: item.timestamp
+    }));
 
     localStorage.setItem('item_data_en', JSON.stringify(dataToSave));
 }
 
 // --- Text Filter Implementation ---
 function addFilterField() {
-  const itemsContainer = document.querySelector('.items');
-  if (!itemsContainer) return;
+    const itemsContainer = document.querySelector('.items');
+    if (!itemsContainer) return;
 
-  const filterContainer = document.createElement('div');
-  filterContainer.className = 'filter_container';
-  filterContainer.style.cssText = 'margin-bottom: 15px; width: 100%;';
+    const filterContainer = document.createElement('div');
+    filterContainer.className = 'filter_container';
+    filterContainer.style.cssText = 'margin-bottom: 15px; width: 100%;';
 
-  const filterInput = document.createElement('input');
-  filterInput.type = 'text';
-  filterInput.placeholder = 'Filter counters...';
-  filterInput.className = 'filter_input';
-  filterInput.style.cssText = 'width: 100%; padding: 8px; box-sizing: border-box;';
+    const filterInput = document.createElement('input');
+    filterInput.type = 'text';
+    filterInput.placeholder = 'Filter counters...';
+    filterInput.className = 'filter_input';
+    filterInput.style.cssText = 'width: 100%; padding: 8px; box-sizing: border-box;';
 
-  filterContainer.appendChild(filterInput);
-  itemsContainer.parentNode.insertBefore(filterContainer, itemsContainer);
+    filterContainer.appendChild(filterInput);
+    itemsContainer.parentNode.insertBefore(filterContainer, itemsContainer);
 
-  const items = itemsContainer.querySelectorAll('.item');
+    filterInput.addEventListener('input', () => {
+        const query = filterInput.value.toLowerCase().trim();
 
-  filterInput.addEventListener('input', () => {
-    const query = filterInput.value.toLowerCase().trim();
+        data.forEach(itemObj => {
+            if (!itemObj.item) return;
+            const titleText = (itemObj.title || '').toLowerCase();
 
-    items.forEach(item => {
-      const titleInput = item.querySelector('.item_title input');
-      const titleText = titleInput ? titleInput.value.toLowerCase() : '';
-      
-      if (titleText.includes(query)) {
-        item.style.display = '';
-      } else {
-        item.style.display = 'none';
-      }
+            if (titleText.includes(query)) {
+                itemObj.item.style.display = '';
+            } else {
+                itemObj.item.style.display = 'none';
+            }
+        });
+
+        if (filterTimeout) clearTimeout(filterTimeout);
+
+        if (query !== '') {
+            filterTimeout = setTimeout(() => {
+                filterInput.value = '';
+                data.forEach(itemObj => {
+                    if (itemObj.item) itemObj.item.style.display = '';
+                });
+            }, 10000);
+        }
     });
-
-    if (filterTimeout) clearTimeout(filterTimeout);
-
-    if (query !== '') {
-      filterTimeout = setTimeout(() => {
-        filterInput.value = '';
-        items.forEach(item => item.style.display = '');
-      }, 10000);
-    }
-  });
 }
 
 addFilterField();
 
 function sortMostRecent() {
-    const items = document.querySelectorAll('.items .item');
-    const limit = Math.min(items.length, 45);
+    const limit = Math.min(data.length, 45);
 
     let portionData = [];
     for (let i = 0; i < limit; i++) {
-        const item = items[i];
         portionData.push({
-            title: item.querySelector('.item_title input').value,
-            timestamp: item.querySelector('.item_timestamp').textContent.trim(),
+            title: data[i].title,
+            timestamp: data[i].timestamp.trim(),
+            count: data[i].count,
             originalIndex: i 
         });
     }
@@ -271,9 +299,9 @@ function sortMostRecent() {
     }
 
     for (let i = 0; i < limit; i++) {
-        const item = items[i];
-        item.querySelector('.item_title input').value = sortedPortion[i].title;
-        item.querySelector('.item_timestamp').textContent = sortedPortion[i].timestamp;
+        data[i].title = sortedPortion[i].title;
+        data[i].timestamp = sortedPortion[i].timestamp;
+        data[i].count = sortedPortion[i].count;
     }
 
     syncData();
