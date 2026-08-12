@@ -1,3 +1,9 @@
+async function main() {
+    syncData();
+    sortMostRecent();
+    addFilterField();
+}
+
 const itemCount = 50;
 let filterTimeout = null; // Declared globally to fix reference errors in filtering
 
@@ -36,8 +42,6 @@ for (let i = 0; i < itemCount; i++) {
 
     data[i].item = temp_item;
 }
-
-syncData();
 
 document.addEventListener('DOMContentLoaded', function() {
     // Synchronize data if localStorage has newer timestamps than rendered DOM
@@ -187,7 +191,7 @@ function countUp(index) {
 
     data[index].timestamp = getTimestamp();
     syncData();
-    debounce(sortMostRecent, 10000);
+    debounce(sortMostRecent, 1000);
 }
 
 function getTimestamp() {
@@ -260,8 +264,6 @@ function addFilterField() {
     });
 }
 
-addFilterField();
-
 function sortMostRecent() {
     const limit = Math.min(data.length, 45);
 
@@ -305,6 +307,7 @@ function sortMostRecent() {
     }
 
     syncData();
+    window.scrollTo({ top: 0 });
 }
 
 function debounce(fn, ms) {
@@ -332,3 +335,5 @@ function debounce(fn, ms) {
         window.addEventListener(eventType, handleUserActivity, { passive: true });
     });
 }
+
+main()
