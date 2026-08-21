@@ -1,25 +1,10 @@
 async function main() {
-    loadDataFromStorage();
-    syncData();
-    sortMostRecent();
     addFilterField();
-    document.addEventListener('DOMContentLoaded', () => {
-        loadDataFromStorage();
-        syncData();
-        sortMostRecent();
-    });
+    restoreDataFromLocalStorage();
 }
 
 const itemCount = 50;
 let filterTimeout = null; // Declared globally to fix reference errors in filtering
-
-function loadDataFromStorage() {
-    try {
-        localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
-    } catch (e) {
-        console.error("Failed to parse local storage data", e);
-    }
-}
 
 function struct(title, count, timestamp, item) {
     this.title = title;
@@ -52,7 +37,7 @@ for (let i = 0; i < itemCount; i++) {
     data[i].item = temp_item;
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+function restoreDataFromLocalStorage() {
     // Synchronize data if localStorage has newer timestamps than rendered DOM
     let freshLocalData = [];
     try {
@@ -71,8 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         syncData();
+        sortMostRecent();
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', restoreDataFromLocalStorage);
 
 // 2. Parent Event Listeners (Event Delegation)
 itemsContainer.addEventListener('change', function(event) {
