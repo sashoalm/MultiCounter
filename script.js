@@ -1,11 +1,25 @@
 async function main() {
+    loadDataFromStorage();
     syncData();
     sortMostRecent();
     addFilterField();
+    document.addEventListener('DOMContentLoaded', () => {
+        loadDataFromStorage();
+        syncData();
+        sortMostRecent();
+    });
 }
 
 const itemCount = 50;
 let filterTimeout = null; // Declared globally to fix reference errors in filtering
+
+function loadDataFromStorage() {
+    try {
+        localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
+    } catch (e) {
+        console.error("Failed to parse local storage data", e);
+    }
+}
 
 function struct(title, count, timestamp, item) {
     this.title = title;
@@ -17,11 +31,6 @@ function struct(title, count, timestamp, item) {
 // 1. Initialize and build the DOM from LocalStorage
 let data = [];
 let localData = [];
-try {
-    localData = JSON.parse(localStorage.getItem('item_data_en')) || [];
-} catch (e) {
-    console.error("Failed to parse local storage data", e);
-}
 
 const itemsContainer = document.querySelector('.items');
 const baseItem = itemsContainer.querySelector('.item');
