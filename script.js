@@ -56,7 +56,7 @@ function restoreDataFromLocalStorage() {
             }
         }
         syncData();
-        sortMostRecent();
+        //sortMostRecent();
     }
 }
 
@@ -188,7 +188,7 @@ function countUp(index) {
 
     data[index].timestamp = getTimestamp();
     syncData();
-    debounce(sortMostRecent, 1000);
+    //debounce(sortMostRecent, 1000);
 }
 
 function getTimestamp() {
