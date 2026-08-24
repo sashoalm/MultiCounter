@@ -73,6 +73,26 @@ itemsContainer.addEventListener('change', function(event) {
     }
 });
 
+itemsContainer.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter' && event.target.matches('.item_title input')) {
+        event.preventDefault(); // Prevent default form submission or carriage return
+        
+        const currentItem = event.target.closest('.item');
+        if (!currentItem) return;
+
+        const currentIndex = parseInt(currentItem.dataset.index, 10);
+        const nextIndex = currentIndex + 1;
+
+        // Focus the input of the next item if it exists
+        if (nextIndex < data.length && data[nextIndex].item) {
+            const nextInput = data[nextIndex].item.querySelector('.item_title input');
+            if (nextInput) {
+                nextInput.focus();
+            }
+        }
+    }
+});
+
 itemsContainer.addEventListener('click', function(event) {
     const target = event.target;
     const itemEl = target.closest('.item');
