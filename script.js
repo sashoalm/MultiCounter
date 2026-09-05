@@ -10,6 +10,10 @@ function struct(title, count, timestamp, item) {
     this.title = title;
     this.count = count;
     this.timestamp = timestamp;
+    this.displayTimestamp = timestamp; // Used for temporary visual display
+    this.originalCount = count;         // Baseline count before user edits
+    this.originalTimestamp = timestamp; // Baseline timestamp before user edits
+    this.timestampTimeout = null;       // Reference for clearing active timers
     this.item = item;
 }
 
@@ -53,6 +57,9 @@ function restoreDataFromLocalStorage() {
                 data[i].title = saved.title || '';
                 data[i].count = saved.count || 0;
                 data[i].timestamp = saved.timestamp || '';
+                data[i].displayTimestamp = saved.timestamp || '';
+                data[i].originalCount = saved.count || 0;
+                data[i].originalTimestamp = saved.timestamp || '';
             }
         }
         syncData();
@@ -150,6 +157,40 @@ function changeTitle(index, value) {
     syncData();
 }
 
+function updateItemTimestamp(index) {
+    const item = data[index];
+
+    // 1. First click in an edit session: baseline the start state
+    if (!item.timestampTimeout) {
+        // Calculate what the count was right before this click
+        item.originalCount = (item.count === 1 && !item.originalTimestamp) 
+            ? 0 
+            : item.count - (item.count > item.originalCount ? 1 : -1);
+        item.originalTimestamp = item.timestamp;
+    } else {
+        // Reset timer if clicked again within 5s
+        clearTimeout(item.timestampTimeout);
+        item.timestampTimeout = null;
+    }
+
+    // 2. Reverted back to the original count
+    if (item.count === item.originalCount) {
+        item.timestamp = item.originalTimestamp;
+        return;
+    }
+
+    // 3. Immediately set the accurate timestamp for localStorage persistence
+    item.timestamp = getTimestamp();
+
+    // 4. Set 5-second visual timer; after 5s, baseline updates to current state
+    item.timestampTimeout = setTimeout(() => {
+        item.originalCount = item.count;
+        item.originalTimestamp = item.timestamp;
+        item.timestampTimeout = null;
+        syncData();
+    }, 5000);
+}
+
 function resetCount(index) {
     let currentTitle = data[index].title || '';
     
@@ -158,7 +199,16 @@ function resetCount(index) {
 
     data[index].title = match ? match[1] : '';
     data[index].count = 0;
+    
+    if (data[index].timestampTimeout) {
+        clearTimeout(data[index].timestampTimeout);
+        data[index].timestampTimeout = null;
+    }
     data[index].timestamp = '';
+    data[index].displayTimestamp = '';
+    data[index].originalCount = 0;
+    data[index].originalTimestamp = '';
+    
     syncData();
 }
 
@@ -176,11 +226,18 @@ function countDown(index) {
         if (newCount > 0) {
             data[index].title = baseTitle ? `${baseTitle} - ${newCount}` : `${newCount}`;
             data[index].count = newCount;
-            data[index].timestamp = getTimestamp();
+            updateItemTimestamp(index, getTimestamp());
         } else {
             data[index].title = baseTitle || '';
             data[index].count = 0;
+            if (data[index].timestampTimeout) {
+                clearTimeout(data[index].timestampTimeout);
+                data[index].timestampTimeout = null;
+            }
             data[index].timestamp = '';
+            data[index].displayTimestamp = '';
+            data[index].originalCount = 0;
+            data[index].originalTimestamp = '';
         }
 
         syncData();
@@ -206,7 +263,7 @@ function countUp(index) {
         data[index].count = 1;
     }
 
-    data[index].timestamp = getTimestamp();
+    updateItemTimestamp(index, getTimestamp());
     syncData();
     //debounce(sortMostRecent, 1000);
 }
@@ -218,13 +275,32 @@ function getTimestamp() {
            `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
+// Helper to format DOM timestamps (highlights hours/minutes in red if temporary display is active)
+function renderTimestampHTML(itemObj) {
+    // While the 5s timer is active, display the OLD (original) timestamp with red HH:MM
+    if (itemObj.timestampTimeout) {
+        const timestampStr = itemObj.originalTimestamp || itemObj.timestamp || '';
+        if (!timestampStr) return '';
+        return timestampStr.replace(/^(\d{4}\/\d{2}\/\d{2}\s+)(\d{2}:\d{2})(:\d{2})$/, (match, datePart, timePart, secPart) => {
+            return `${datePart}<span style="color: red;">${timePart}</span>${secPart}`;
+        });
+    }
+
+    // Otherwise show the actual timestamp
+    return itemObj.timestamp || '';
+}
+
 // 4. Sync State to DOM and LocalStorage
 function syncData() {
     for (let i = 0; i < data.length; i++) {
         if (!data[i].item) continue;
         const input = data[i].item.querySelector('.item_title input');
         if (input) input.value = data[i].title;
-        data[i].item.querySelector('.item_timestamp').textContent = data[i].timestamp;
+        
+        const timestampEl = data[i].item.querySelector('.item_timestamp');
+        if (timestampEl) {
+            timestampEl.innerHTML = renderTimestampHTML(data[i]);
+        }
     }
 
     const dataToSave = data.map(item => ({
@@ -320,6 +396,9 @@ function sortMostRecent() {
     for (let i = 0; i < limit; i++) {
         data[i].title = sortedPortion[i].title;
         data[i].timestamp = sortedPortion[i].timestamp;
+        data[i].displayTimestamp = sortedPortion[i].timestamp;
+        data[i].originalCount = sortedPortion[i].count;
+        data[i].originalTimestamp = sortedPortion[i].timestamp;
         data[i].count = sortedPortion[i].count;
     }
 
@@ -353,4 +432,4 @@ function debounce(fn, ms) {
     });
 }
 
-main()
+main();
