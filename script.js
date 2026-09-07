@@ -299,19 +299,50 @@ function getTimestamp() {
            `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
 
-// Helper to format DOM timestamps (highlights hours/minutes in red if temporary display is active)
+// Helper to format DOM timestamps (highlights hours/minutes, AM/PM, and optionally month/day in red if temporary display is active)
 function renderTimestampHTML(itemObj) {
-    // While the 5s timer is active, display the OLD (original) timestamp with red HH:MM
+    const timestampStr = itemObj.timestampTimeout
+        ? (itemObj.originalTimestamp || itemObj.timestamp || '')
+        : (itemObj.timestamp || '');
+
+    if (!timestampStr) return '';
+
+    // Convert stored format 'YYYY/MM/DD HH:MM:SS' to Date object
+    const dateObj = new Date(timestampStr.replace('/', '-'));
+    if (isNaN(dateObj.getTime())) return timestampStr;
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+
+    let hours = dateObj.getHours();
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12 || 12;
+
+    const timeString = `${hours}:${minutes}`;
+
     if (itemObj.timestampTimeout) {
-        const timestampStr = itemObj.originalTimestamp || itemObj.timestamp || '';
-        if (!timestampStr) return '';
-        return timestampStr.replace(/^(\d{4}\/\d{2}\/\d{2}\s+)(\d{2}:\d{2})(:\d{2})$/, (match, datePart, timePart, secPart) => {
-            return `${datePart}<span style="color: red;">${timePart}</span>${secPart}`;
-        });
+        // Parse the new (current) timestamp to check if the day changed
+        const newDateObj = itemObj.timestamp ? new Date(itemObj.timestamp.replace('/', '-')) : null;
+        
+        const isDifferentDay = newDateObj && !isNaN(newDateObj.getTime()) && (
+            dateObj.getFullYear() !== newDateObj.getFullYear() ||
+            dateObj.getMonth() !== newDateObj.getMonth() ||
+            dateObj.getDate() !== newDateObj.getDate()
+        );
+
+        if (isDifferentDay) {
+            // Highlight month, day, time, and AM/PM in red
+            return `<span style="color: red;">${month} ${day}</span> ${year} <span style="color: red;">${timeString} ${ampm}</span>`;
+        }
+
+        // Highlight only time and AM/PM in red
+        return `${month} ${day} ${year} <span style="color: red;">${timeString} ${ampm}</span>`;
     }
 
-    // Otherwise show the actual timestamp
-    return itemObj.timestamp || '';
+    return `${month} ${day} ${year} ${timeString} ${ampm}`;
 }
 
 // 4. Sync State to DOM and LocalStorage
