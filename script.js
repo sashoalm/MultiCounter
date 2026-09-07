@@ -224,7 +224,7 @@ function countDown(index) {
         const newCount = currentCount - 1;
 
         if (newCount > 0) {
-            data[index].title = baseTitle ? `${baseTitle} - ${newCount}` : `${newCount}`;
+            data[index].title = baseTitle ? `${baseTitle.trim()} - ${newCount}` : `${newCount}`;
             data[index].count = newCount;
             updateItemTimestamp(index, getTimestamp());
         } else {
@@ -255,7 +255,7 @@ function countUp(index) {
         const currentCount = parseInt(match[2], 10);
         const newCount = currentCount + 1;
 
-        data[index].title = baseTitle ? `${baseTitle} - ${newCount}` : `${newCount}`;
+        data[index].title = baseTitle ? `${baseTitle.trim()} - ${newCount}` : `${newCount}`;
         data[index].count = newCount;
     } else {
         // If the field is totally empty, make it "1" (No dash prefix!)
