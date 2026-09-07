@@ -81,20 +81,44 @@ itemsContainer.addEventListener('change', function(event) {
 });
 
 itemsContainer.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter' && event.target.matches('.item_title input')) {
-        event.preventDefault(); // Prevent default form submission or carriage return
+    const isInput = event.target.matches('.item_title input');
+    if (!isInput) return;
+
+    const currentItem = event.target.closest('.item');
+    if (!currentItem) return;
+
+    const currentIndex = parseInt(currentItem.dataset.index, 10);
+
+    // Navigate to NEXT item on Enter
+    if (event.key === 'Enter') {
+        event.preventDefault();
         
-        const currentItem = event.target.closest('.item');
-        if (!currentItem) return;
-
-        const currentIndex = parseInt(currentItem.dataset.index, 10);
         const nextIndex = currentIndex + 1;
-
-        // Focus the input of the next item if it exists
         if (nextIndex < data.length && data[nextIndex].item) {
             const nextInput = data[nextIndex].item.querySelector('.item_title input');
             if (nextInput) {
                 nextInput.focus();
+            }
+        }
+    } 
+    // Navigate to PREVIOUS item on Backspace if cursor is at the start
+    else if (event.key === 'Backspace') {
+        const input = event.target;
+
+        // Check if cursor is at the very beginning with no selection
+        if (input.selectionStart === 0 && input.selectionEnd === 0) {
+            const prevIndex = currentIndex - 1;
+
+            if (prevIndex >= 0 && data[prevIndex].item) {
+                const prevInput = data[prevIndex].item.querySelector('.item_title input');
+                if (prevInput) {
+                    event.preventDefault(); // Prevent deleting a character in the previous input immediately
+                    prevInput.focus();
+                    
+                    // Place cursor at the END of the previous input's text (text-editor behavior)
+                    const length = prevInput.value.length;
+                    prevInput.setSelectionRange(length, length);
+                }
             }
         }
     }
