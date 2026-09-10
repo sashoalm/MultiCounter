@@ -420,3 +420,31 @@ button {
     background-color: currentColor;
     content: "";
 }
+
+/* Fixed Filter Header & Independent Scroll Container */
+main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+}
+
+.filter_container {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: #fff;
+    padding-bottom: 15px;
+}
+
+.filter_input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+.scroll_container {
+    flex: 1;
+    overflow-y: auto;
+}
