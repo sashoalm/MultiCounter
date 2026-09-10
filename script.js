@@ -219,7 +219,7 @@ function resetCount(index) {
     let currentTitle = data[index].title || '';
     
     // Captures "(baseTitle) - (count)" OR just a standalone "(count)"
-    const match = currentTitle.match(/^(.*?)(?:\s-\s|\s*)\d+$/);
+    const match = currentTitle.match(/^(.*) - \d+$/);
 
     data[index].title = match ? match[1] : '';
     data[index].count = 0;
@@ -283,7 +283,7 @@ function countUp(index) {
         data[index].count = newCount;
     } else {
         // If the field is totally empty, make it "1" (No dash prefix!)
-        data[index].title = currentTitle ? `${currentTitle} - 1` : '1';
+        data[index].title = currentTitle ? `${currentTitle.trim()} - 1` : '1';
         data[index].count = 1;
     }
 
