@@ -369,21 +369,8 @@ function syncData() {
 
 // --- Text Filter Implementation ---
 function addFilterField() {
-    const itemsContainer = document.querySelector('.items');
-    if (!itemsContainer) return;
-
-    const filterContainer = document.createElement('div');
-    filterContainer.className = 'filter_container';
-    filterContainer.style.cssText = 'margin-bottom: 15px; width: 100%;';
-
-    const filterInput = document.createElement('input');
-    filterInput.type = 'text';
-    filterInput.placeholder = 'Filter counters...';
-    filterInput.className = 'filter_input';
-    filterInput.style.cssText = 'width: 100%; padding: 8px; box-sizing: border-box;';
-
-    filterContainer.appendChild(filterInput);
-    itemsContainer.parentNode.insertBefore(filterContainer, itemsContainer);
+    const filterInput = document.querySelector('.filter_input');
+    if (!filterInput) return;
 
     filterInput.addEventListener('input', () => {
         const query = filterInput.value.toLowerCase().trim();
