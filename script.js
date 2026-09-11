@@ -103,6 +103,8 @@ itemsContainer.addEventListener('keydown', function(event) {
     } 
     // Navigate to PREVIOUS item on Backspace if cursor is at the start
     else if (event.key === 'Backspace') {
+        if (event.repeat) return;
+
         const input = event.target;
 
         // Check if cursor is at the very beginning with no selection
