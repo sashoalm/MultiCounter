@@ -369,25 +369,42 @@ function syncData() {
     localStorage.setItem('item_data_en', JSON.stringify(dataToSave));
 }
 
-// --- Text Filter Implementation ---
 function addFilterField() {
     const filterInput = document.querySelector('.filter_input');
     if (!filterInput) return;
 
     filterInput.addEventListener('input', () => {
-        const query = filterInput.value.toLowerCase().trim();
+        const rawValue = filterInput.value.toLowerCase();
+        
+        // Check if the query explicitly starts with a space
+        const startsWithSpace = rawValue.startsWith(' ');
+        const query = rawValue.trim();
 
         data.forEach(itemObj => {
             if (!itemObj.item) return;
             const titleText = (itemObj.title || '').toLowerCase();
 
-            if (titleText.includes(query)) {
+            if (query === '') {
+                // Show everything if input is empty or only whitespace
                 itemObj.item.style.display = '';
+            } else if (startsWithSpace) {
+                // OLD BEHAVIOR: Exact substring match (e.g., " bone" matches "bone")
+                const matches = titleText.includes(query);
+                itemObj.item.style.display = matches ? '' : 'none';
             } else {
-                itemObj.item.style.display = 'none';
+                // NEW BEHAVIOR: Word-boundary match for multi-word OR search
+                const words = query.split(/\s+/).filter(w => w.length > 0);
+                const matches = words.some(word => {
+                    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`\\b${escapedWord}`);
+                    return regex.test(titleText);
+                });
+
+                itemObj.item.style.display = matches ? '' : 'none';
             }
         });
 
+        // 10-second reset timer logic
         if (filterTimeout) clearTimeout(filterTimeout);
 
         if (query !== '') {
