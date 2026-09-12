@@ -34,6 +34,10 @@ for (let i = 0; i < itemCount; i++) {
     // Track the index on the element itself
     temp_item.dataset.index = i;
 
+    // Set item number (1 to 50)
+    const numberEl = temp_item.querySelector('.item_number');
+    if (numberEl) numberEl.textContent = (i + 1) + '.';    
+
     // Setup basic placeholders
     const input = temp_item.querySelector('.item_title input');
     if (input) input.setAttribute('placeholder', 'Counter ' + (i + 1));
