@@ -423,3 +423,35 @@ input[type="number"]::-webkit-outer-spin-button {
     display: table;
     margin: 1em auto 0px;
 }
+
+.filter_container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.filter_input {
+  width: 100%;
+  padding: 8px 30px 8px 10px; /* Right padding creates space for the clear button */
+  box-sizing: border-box;
+}
+
+.clear_btn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.clear_btn:hover {
+  color: #000;
+}

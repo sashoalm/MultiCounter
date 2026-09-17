@@ -1,10 +1,10 @@
 async function main() {
     addFilterField();
     restoreDataFromLocalStorage();
+    addClearButtonHandler();
 }
 
 const itemCount = 50;
-let filterTimeout = null; // Declared globally to fix reference errors in filtering
 
 function struct(title, count, timestamp, item) {
     this.title = title;
@@ -403,18 +403,6 @@ function addFilterField() {
                 itemObj.item.style.display = matches ? '' : 'none';
             }
         });
-
-        // 10-second reset timer logic
-        if (filterTimeout) clearTimeout(filterTimeout);
-
-        if (query !== '') {
-            filterTimeout = setTimeout(() => {
-                filterInput.value = '';
-                data.forEach(itemObj => {
-                    if (itemObj.item) itemObj.item.style.display = '';
-                });
-            }, 10000);
-        }
     });
 }
 
@@ -490,6 +478,19 @@ function debounce(fn, ms) {
 
     activityEvents.forEach(eventType => {
         window.addEventListener(eventType, handleUserActivity, { passive: true });
+    });
+}
+
+function addClearButtonHandler() {
+    const filterInput = document.querySelector('.filter_input');
+    const clearBtn = document.querySelector('.clear_btn');
+
+    clearBtn.addEventListener('click', () => {
+        filterInput.value = '';
+        filterInput.focus();
+
+        // Triggers the 'input' event if you have a listener filtering results live
+        filterInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
 }
 
