@@ -38,10 +38,6 @@ for (let i = 0; i < itemCount; i++) {
     const numberEl = temp_item.querySelector('.item_number');
     if (numberEl) numberEl.textContent = (i + 1) + '.';    
 
-    // Setup basic placeholders
-    const input = temp_item.querySelector('.item_title input');
-    if (input) input.setAttribute('placeholder', 'Counter ' + (i + 1));
-
     data[i].item = temp_item;
 }
 
