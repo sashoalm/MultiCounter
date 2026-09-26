@@ -2,6 +2,7 @@ async function main() {
     addFilterField();
     restoreDataFromLocalStorage();
     addClearButtonHandler();
+    addIOHandlers();
 }
 
 const itemCount = 50;
@@ -492,6 +493,127 @@ function addClearButtonHandler() {
         // Triggers the 'input' event if you have a listener filtering results live
         filterInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
+}
+
+function addIOHandlers() {
+    const exportBtn = document.querySelector('.btn_export');
+    const importBtn = document.querySelector('.btn_import');
+    const fileInput = document.getElementById('import_file_input');
+
+    if (exportBtn) exportBtn.addEventListener('click', exportDataToTxt);
+    if (importBtn && fileInput) {
+        importBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleImportFile);
+    }
+}
+
+// Format stored date string 'YYYY/MM/DD HH:MM:SS' to 'MMM DD hh:mm am/pm'
+function formatTimestampForExport(timestampStr) {
+    if (!timestampStr) return '';
+    const dateObj = new Date(timestampStr.replace('/', '-'));
+    if (isNaN(dateObj.getTime())) return '';
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[dateObj.getMonth()];
+    const day = String(dateObj.getDate()).padStart(2, '0');
+
+    let hours = dateObj.getHours();
+    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'pm' : 'am';
+    hours = hours % 12 || 12;
+
+    return `${month} ${day} ${hours}:${minutes} ${ampm}`;
+}
+
+// Convert exported date string 'MMM DD hh:mm am/pm' back to 'YYYY/MM/DD HH:MM:SS'
+function parseExportedTimestamp(exportedStr) {
+    if (!exportedStr) return '';
+
+    const parts = exportedStr.trim().split(/\s+/);
+    if (parts.length < 4) return '';
+
+    const monthStr = parts[0];
+    const day = parseInt(parts[1], 10);
+    const timeParts = parts[2].split(':');
+    const ampm = parts[3].toLowerCase();
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthIndex = months.indexOf(monthStr);
+    if (monthIndex === -1) return '';
+
+    let hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+
+    if (ampm === 'pm' && hours < 12) hours += 12;
+    if (ampm === 'am' && hours === 12) hours = 0;
+
+    const currentYear = new Date().getFullYear();
+    const pad = (n) => String(n).padStart(2, '0');
+
+    return `${currentYear}/${pad(monthIndex + 1)}/${pad(day)} ${pad(hours)}:${pad(minutes)}:00`;
+}
+
+// EXPORT functionality
+function exportDataToTxt() {
+    const lines = data.map(item => {
+        const title = item.title || '';
+        const formattedDate = formatTimestampForExport(item.timestamp);
+        return formattedDate ? `${title}\t${formattedDate}` : title;
+    });
+
+    const content = lines.join('\n');
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'counters_export.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// IMPORT functionality
+function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/);
+
+        for (let i = 0; i < itemCount; i++) {
+            const line = lines[i] !== undefined ? lines[i] : '';
+            const parts = line.split('\t');
+
+            const title = parts[0] || '';
+            const dateStr = parts[1] || '';
+
+            // Extract trailing counter integer if present
+            const match = title.match(/^(?:(.*)\s-\s)?(\d+)$/);
+            const count = match ? parseInt(match[2], 10) : 0;
+            const timestamp = dateStr ? parseExportedTimestamp(dateStr) : '';
+
+            data[i].title = title;
+            data[i].count = count;
+            data[i].timestamp = timestamp;
+            data[i].displayTimestamp = timestamp;
+            data[i].originalCount = count;
+            data[i].originalTimestamp = timestamp;
+
+            if (data[i].timestampTimeout) {
+                clearTimeout(data[i].timestampTimeout);
+                data[i].timestampTimeout = null;
+            }
+        }
+
+        syncData();
+        event.target.value = ''; // Reset file input
+    };
+
+    reader.readAsText(file);
 }
 
 main();

@@ -413,6 +413,16 @@ input[type="number"]::-webkit-outer-spin-button {
     overflow-y: auto;
 }
 
+.io_controls {
+    display: flex;
+    justify-content: center;
+}
+
+.io_controls button {
+    font-size: 14px;
+    cursor: pointer;
+}
+
 .popup_main_content h2 {
     padding: 0px 0.5em 0.5em;
     border-bottom: solid 2px #000;
