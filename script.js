@@ -214,7 +214,10 @@ function updateItemTimestamp(index) {
         item.originalCount = item.count;
         item.originalTimestamp = item.timestamp;
         item.timestampTimeout = null;
-        syncData();
+        const timestampEl = item.item.querySelector('.item_timestamp');
+        if (timestampEl) {
+            timestampEl.innerHTML = renderTimestampHTML(item);
+        }
     }, 5000);
 }
 
