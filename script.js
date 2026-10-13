@@ -234,10 +234,13 @@ function resetCount(index) {
         clearTimeout(data[index].timestampTimeout);
         data[index].timestampTimeout = null;
     }
-    data[index].timestamp = '';
-    data[index].displayTimestamp = '';
-    data[index].originalCount = 0;
-    data[index].originalTimestamp = '';
+
+    if (!match) {
+        data[index].timestamp = '';
+        data[index].displayTimestamp = '';
+        data[index].originalCount = 0;
+        data[index].originalTimestamp = '';
+    }
     
     syncData();
 }
