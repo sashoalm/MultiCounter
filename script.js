@@ -381,8 +381,25 @@ function addFilterField() {
     if (!filterInput) return;
 
     filterInput.addEventListener('dblclick', (event) => {
-        event.preventDefault();
+        event.target.blur(); // Hides Android keyboard
         sortMostRecent();
+    });
+
+    let pressTimer = null;
+
+    filterInput.addEventListener('touchstart', (event) => {
+        pressTimer = setTimeout(() => {
+            event.target.blur(); // Hides Android keyboard
+            sortMostRecent();
+        }, 500); // 500ms hold
+    });
+
+    filterInput.addEventListener('touchend', () => {
+        clearTimeout(pressTimer);
+    });
+
+    filterInput.addEventListener('touchmove', () => {
+        clearTimeout(pressTimer); // Cancels if user scrolls
     });
 
     filterInput.addEventListener('input', () => {
