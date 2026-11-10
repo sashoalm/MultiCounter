@@ -380,6 +380,11 @@ function addFilterField() {
     const filterInput = document.querySelector('.filter_input');
     if (!filterInput) return;
 
+    filterInput.addEventListener('dblclick', (event) => {
+        event.preventDefault();
+        sortMostRecent();
+    });
+
     filterInput.addEventListener('input', () => {
         const rawValue = filterInput.value.toLowerCase();
         
